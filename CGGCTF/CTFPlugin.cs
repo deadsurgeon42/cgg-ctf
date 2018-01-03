@@ -235,7 +235,7 @@ namespace CGGCTF
         {
             var tplr = args.Player;
             var ix = tplr.Index;
-            var id = tplr.Account.ID;
+            var id = tplr.User.ID;
 
             loadedUser[ix] = users.GetUser(id);
 
@@ -268,7 +268,7 @@ namespace CGGCTF
         {
             var tplr = args.Player;
             var ix = tplr.Index;
-            var id = tplr.Account.ID;
+            var id = tplr.User.ID;
 
             users.SaveUser(loadedUser[ix]);
             loadedUser[ix] = null;
@@ -305,7 +305,7 @@ namespace CGGCTF
         {
             var ix = args.PlayerId;
             var tplr = TShock.Players[ix];
-            var id = tplr.IsLoggedIn ? tplr.Account.ID : -1;
+            var id = tplr.IsLoggedIn ? tplr.User.ID : -1;
 
             int x = (int)Math.Round(args.Position.X / 16);
             int y = (int)Math.Round(args.Position.Y / 16);
@@ -330,7 +330,7 @@ namespace CGGCTF
         {
             var ix = args.PlayerId;
             var tplr = TShock.Players[ix];
-            var id = tplr.IsLoggedIn ? tplr.Account.ID : -1;
+            var id = tplr.IsLoggedIn ? tplr.User.ID : -1;
 
             if (!ctf.PlayerExists(id) || ctf.PlayerDead(id))
                 return;
@@ -341,7 +341,7 @@ namespace CGGCTF
 
                 if (args.Pvp) {
                     var item = TShock.Utils.GetItemById(Terraria.ID.ItemID.RestorationPotion);
-                    tplr.GiveItem(item.type, 1);
+                    tplr.GiveItem(item.type, item.Name, item.width, item.height, 1);
                 }
 
                 if (ctf.Phase == CTFPhase.SuddenDeath) {
@@ -358,11 +358,11 @@ namespace CGGCTF
             if (args.Handled)
                 return;
 
-            var tplr = args.Player;
+            var tplr = TShock.Players[args.Player];
             if (!tplr.Active || !tplr.RealPlayer || !tplr.IsLoggedIn)
                 return;
 
-            var id = tplr.Account.ID;
+            var id = tplr.User.ID;
             if (!ctf.PlayerExists(id))
                 return;
             if (ctf.PlayerDead(id)) {
@@ -391,7 +391,7 @@ namespace CGGCTF
                 return;
 
             var tplr = args.Player;
-            var id = tplr.IsLoggedIn ? tplr.Account.ID : -1;
+            var id = tplr.IsLoggedIn ? tplr.User.ID : -1;
 
             Action sendTile = () => {
                 TSPlayer.All.SendTileSquare(args.X, args.Y, 1);
@@ -433,7 +433,7 @@ namespace CGGCTF
                 return;
 
             var tplr = args.Player;
-            var id = tplr.IsLoggedIn ? tplr.Account.ID : -1;
+            var id = tplr.IsLoggedIn ? tplr.User.ID : -1;
 
             if (!tplr.HasPermission(CTFPermissions.IgnoreInteract)
                 && (!ctf.PlayerExists(id)
@@ -471,7 +471,7 @@ namespace CGGCTF
         {
             var tplr = args.Player;
             var ix = tplr.Index;
-            var id = tplr.IsLoggedIn ? tplr.Account.ID : -1;
+            var id = tplr.IsLoggedIn ? tplr.User.ID : -1;
 
             if (spectating[ix]) {
                 args.Handled = true;
@@ -493,11 +493,11 @@ namespace CGGCTF
                     var kix = reader.ReadInt16();
 
                     var tplr = TShock.Players[ix];
-                    var id = tplr.IsLoggedIn ? tplr.Account.ID : -1;
+                    var id = tplr.IsLoggedIn ? tplr.User.ID : -1;
                     var cusr = loadedUser[ix];
 
                     var ktplr = TShock.Players[kix];
-                    var kid = ktplr.IsLoggedIn ? ktplr.Account.ID : -1;
+                    var kid = ktplr.IsLoggedIn ? ktplr.User.ID : -1;
                     var kcuser = loadedUser[kix];
 
                     if (!ctf.GameIsRunning || !ctf.PlayerExists(id) || !ctf.PlayerExists(kid))
@@ -516,7 +516,7 @@ namespace CGGCTF
                     var deathReason = reader.ReadByte();
 
                     var tplr = TShock.Players[ix];
-                    var id = tplr.IsLoggedIn ? tplr.Account.ID : -1;
+                    var id = tplr.IsLoggedIn ? tplr.User.ID : -1;
                     var cusr = loadedUser[ix];
 
                     if (!ctf.GameIsRunning || !ctf.PlayerExists(id) || ctf.PlayerDead(id))
@@ -526,7 +526,7 @@ namespace CGGCTF
                     if ((deathReason & 1) != 0) {
                         kix = reader.ReadInt16();
                         var ktplr = TShock.Players[kix];
-                        var kid = ktplr.IsLoggedIn ? ktplr.Account.ID : -1;
+                        var kid = ktplr.IsLoggedIn ? ktplr.User.ID : -1;
                         var kcuser = loadedUser[kix];
                         if (ctf.PlayerExists(kid)) {
                             ++kcuser.Kills;
@@ -638,7 +638,7 @@ namespace CGGCTF
         {
             var tplr = args.Player;
             var ix = tplr.Index;
-            var id = tplr.IsLoggedIn ? tplr.Account.ID : -1;
+            var id = tplr.IsLoggedIn ? tplr.User.ID : -1;
             if (tplr == TSPlayer.Server || !tplr.Active || !tplr.RealPlayer) {
                 tplr.SendErrorMessage("You must be in-game to use this command.");
                 return;
@@ -659,7 +659,7 @@ namespace CGGCTF
         {
             var tplr = args.Player;
             var ix = tplr.Index;
-            var id = tplr.IsLoggedIn ? tplr.Account.ID : -1;
+            var id = tplr.IsLoggedIn ? tplr.User.ID : -1;
             if (tplr == TSPlayer.Server || !tplr.Active || !tplr.RealPlayer) {
                 tplr.SendErrorMessage("You must be in-game to use this command.");
                 return;
@@ -686,7 +686,7 @@ namespace CGGCTF
         {
             var tplr = args.Player;
             var ix = tplr.Index;
-            var id = tplr.IsLoggedIn ? tplr.Account.ID : -1;
+            var id = tplr.IsLoggedIn ? tplr.User.ID : -1;
             var validPlayer = (tplr != TSPlayer.Server && tplr.Active && tplr.RealPlayer);
 
             if (args.Parameters.Count == 0) {
@@ -1105,7 +1105,7 @@ namespace CGGCTF
 
                         var name = args.Parameters[1];
                         TSPlayer ttplr;
-                        UserAccount tusr;
+                        User tusr;
                         CTFUser cusr;
                         if (!findUser(name, out ttplr, out tusr, out cusr)) {
                             tplr.SendErrorMessage("User {0} doesn't exist.", name);
@@ -1145,7 +1145,7 @@ namespace CGGCTF
 
                         var name = args.Parameters[1];
                         TSPlayer ttplr;
-                        UserAccount tusr;
+                        User tusr;
                         CTFUser cusr;
                         if (!findUser(name, out ttplr, out tusr, out cusr)) {
                             tplr.SendErrorMessage("User {0} doesn't exist.", name);
@@ -1184,7 +1184,7 @@ namespace CGGCTF
 
                         var name = args.Parameters[1];
                         TSPlayer ttplr = null;
-                        UserAccount tusr = null;
+                        User tusr = null;
                         CTFUser cusr = null;
                         if (name != "*") {
                             if (!findUser(name, out ttplr, out tusr, out cusr)) {
@@ -1367,7 +1367,7 @@ namespace CGGCTF
         {
             var tplr = args.Player;
             var ix = tplr.Index;
-            var id = tplr.IsLoggedIn ? tplr.Account.ID : -1;
+            var id = tplr.IsLoggedIn ? tplr.User.ID : -1;
             var validPlayer = (tplr != TSPlayer.Server && tplr.Active && tplr.RealPlayer);
 
             if (args.Parameters.Count == 0) {
@@ -1492,7 +1492,7 @@ namespace CGGCTF
                             if (item != null) {
                                 item.stack = cls.Inventory[i].Stack;
                                 item.Prefix(cls.Inventory[i].PrefixId);
-                                tplr.GiveItem(item.netID, item.stack, item.prefix);
+                                tplr.GiveItem(item.type, item.Name, item.width, item.height, 1);
                             }
                         }
 
@@ -1597,12 +1597,12 @@ namespace CGGCTF
             }
             var team = color == "red" ? CTFTeam.Red : CTFTeam.Blue;
 
-            var matches = TSPlayer.FindByNameOrID(args.Parameters[0]);
+            var matches = TShock.Utils.FindPlayer(args.Parameters[0]);
             if (matches.Count < 0) {
                 tplr.SendErrorMessage("Invalid player!");
                 return;
             } else if (matches.Count > 1) {
-                tplr.SendMultipleMatchError(matches.Select(m => m.Name));
+                TShock.Utils.SendMultipleMatchError(tplr, matches.Select(m => m.Name));
                 return;
             }
 
@@ -1611,11 +1611,11 @@ namespace CGGCTF
             if (!target.IsLoggedIn) {
                 tplr.SendErrorMessage("{0} isn't logged in.", target.Name);
                 return;
-            } else if (!ctf.PlayerExists(target.Account.ID)) {
+            } else if (!ctf.PlayerExists(target.User.ID)) {
                 tplr.SendErrorMessage("{0} hasn't joined the game.", target.Name);
             }
 
-            if (!ctf.SwitchTeam(target.Account.ID, team)) {
+            if (!ctf.SwitchTeam(target.User.ID, team)) {
                 tplr.SendErrorMessage("{0} was already on {1} team.",
                     target.Name, color);
             }
@@ -1625,7 +1625,7 @@ namespace CGGCTF
         {
             var tplr = args.Player;
             var ix = tplr.Index;
-            var id = tplr.IsLoggedIn ? tplr.Account.ID : -1;
+            var id = tplr.IsLoggedIn ? tplr.User.ID : -1;
 
             if (!ctf.GameIsRunning) {
                 tplr.SendErrorMessage("There is no game to spectate.");
@@ -1674,7 +1674,7 @@ namespace CGGCTF
                     var name = string.Join(" ", prms);
 
                     TSPlayer ttplr;
-                    UserAccount ttusr;
+                    User ttusr;
                     CTFUser tcusr;
                     if (!findUser(name, out ttplr, out ttusr, out tcusr)) {
                         tplr.SendErrorMessage("User {0} doesn't exist.", name);
@@ -1696,7 +1696,7 @@ namespace CGGCTF
 
                     var name = string.Join(" ", args.Parameters);
                     TSPlayer ttplr;
-                    UserAccount ttusr;
+                    User ttusr;
                     CTFUser tcusr;
                     if (!findUser(name, out ttplr, out ttusr, out tcusr)) {
                         tplr.SendErrorMessage("User {0} doesn't exist.", name);
@@ -1712,7 +1712,7 @@ namespace CGGCTF
             }
 
             TSPlayer xtplr;
-            UserAccount xtusr;
+            User xtusr;
             CTFUser cusr;
             if (!findUser(tplr.Name, out xtplr, out xtusr, out cusr)) {
                 tplr.SendErrorMessage("You must be logged in to use this command.");
@@ -1726,7 +1726,7 @@ namespace CGGCTF
         {
             var tplr = args.Player;
             var ix = tplr.Index;
-            var id = tplr.IsLoggedIn ? tplr.Account.ID : -1;
+            var id = tplr.IsLoggedIn ? tplr.User.ID : -1;
 
             var name = tplr.Name;
 
@@ -1739,7 +1739,7 @@ namespace CGGCTF
             }
 
             TSPlayer plr;
-            UserAccount user;
+            User user;
             CTFUser cusr;
             if (!findUser(name, out plr, out user, out cusr)) {
                 if (name == tplr.Name)
@@ -1947,7 +1947,7 @@ namespace CGGCTF
                     if (tplr == null)
                         continue;
                     var ix = tplr.Index;
-                    var id = tplr.IsLoggedIn ? tplr.Account.ID : -1;
+                    var id = tplr.IsLoggedIn ? tplr.User.ID : -1;
                     var cusr = loadedUser[ix];
                     if (!ctf.PlayerExists(id))
                         continue;
@@ -2167,7 +2167,7 @@ namespace CGGCTF
                 return;
 
             var ix = tplr.Index;
-            var id = tplr.IsLoggedIn ? tplr.Account.ID : -1;
+            var id = tplr.IsLoggedIn ? tplr.User.ID : -1;
             var cusr = loadedUser[ix];
 
             var old = cusr.Coins;
@@ -2184,19 +2184,19 @@ namespace CGGCTF
             }
         }
 
-        bool findUser(string name, out TSPlayer tplr, out UserAccount tusr, out CTFUser cusr)
+        bool findUser(string name, out TSPlayer tplr, out User tusr, out CTFUser cusr)
         {
-          var plrMatches = TSPlayer.FindByNameOrID(name);
+          var plrMatches = TShock.Utils.FindPlayer(name);
             if (plrMatches.Count == 1) {
                 tplr = plrMatches[0];
                 if (tplr.IsLoggedIn) {
-                    tusr = tplr.Account;
+                    tusr = tplr.User;
                     cusr = loadedUser[tplr.Index];
                     return true;
                 }
             }
 
-            var usr = TShock.UserAccounts.GetUserAccountByName(name);
+            var usr = TShock.Users.GetUserByName(name);
             if (usr == null) {
                 tplr = null;
                 tusr = null;
@@ -2206,7 +2206,7 @@ namespace CGGCTF
 
             if (revID.ContainsKey(usr.ID)) {
                 tplr = TShock.Players[revID[usr.ID]];
-                tusr = tplr.Account;
+                tusr = tplr.User;
                 cusr = loadedUser[tplr.Index];
                 return true;
             }
@@ -2220,10 +2220,10 @@ namespace CGGCTF
         CTFUser getUser(TSPlayer plr)
         {
             TSPlayer tplr;
-            UserAccount tusr;
+            User tusr;
             CTFUser cusr;
             if (!plr.IsLoggedIn
-                || !findUser(plr.Account.Name, out tplr, out tusr, out cusr))
+                || !findUser(plr.User.Name, out tplr, out tusr, out cusr))
                 return null;
             return cusr;
         }
