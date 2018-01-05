@@ -103,6 +103,8 @@ namespace CGGCTF
             GetDataHandlers.PlayerSlot += onSlot;
             ServerApi.Hooks.NetGetData.Register(this, onGetData);
 
+            ServerApi.Hooks.NpcSpawn.Register(this, onNpcSpawn);
+
             GetDataHandlers.TileEdit += onTileEdit;
             GetDataHandlers.ChestOpen += onChestOpen;
             GetDataHandlers.ItemDrop += onItemDrop;
@@ -128,6 +130,8 @@ namespace CGGCTF
                 ServerApi.Hooks.NetSendData.Deregister(this, onSendData);
                 GetDataHandlers.PlayerSlot -= onSlot;
                 ServerApi.Hooks.NetGetData.Deregister(this, onGetData);
+
+                ServerApi.Hooks.NpcSpawn.Deregister(this, onNpcSpawn);
 
                 GetDataHandlers.TileEdit -= onTileEdit;
                 GetDataHandlers.ChestOpen -= onChestOpen;
@@ -212,6 +216,16 @@ namespace CGGCTF
         void onWorldLoad(EventArgs args)
         {
             tiles.RemoveBadStuffs();
+        }
+
+        void onNpcSpawn(NpcSpawnEventArgs args)
+        {
+            var npc = Main.npc.ElementAtOrDefault(args.NpcId);
+            if (npc == null)
+                return;
+
+            if (npc.townNPC)
+                args.Handled = true;
         }
 
         void onJoin(JoinEventArgs args)
