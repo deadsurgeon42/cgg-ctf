@@ -533,6 +533,9 @@ namespace CGGCTF
                         || Main.tile[i, j].wall == 221)
                         SetWall(i, j, 187);
 
+                    // pots
+                    else if (Main.tile[i, j].type == 28)
+                        SetTile(i, j, -1);
                 }
             }
 
