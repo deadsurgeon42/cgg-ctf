@@ -225,7 +225,10 @@ namespace CGGCTF
                 return;
 
             if (npc.townNPC)
-                args.Handled = true;
+            {
+                Main.npc[args.NpcId] = new NPC();
+                TSPlayer.All.SendData(PacketTypes.NpcUpdate, number: args.NpcId);
+            }
         }
 
         void onJoin(JoinEventArgs args)
