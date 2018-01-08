@@ -76,6 +76,7 @@ namespace CGGCTF
 
         // spectator
         bool[] spectating = new bool[256];
+        SpectatorManager spectatorManager;
 
         // assist list
         List<int>[] didDamage = new List<int>[256];
@@ -138,6 +139,8 @@ namespace CGGCTF
                 GetDataHandlers.ItemDrop -= onItemDrop;
                 GetDataHandlers.PlayerTeam -= pvp.PlayerTeamHook;
                 GetDataHandlers.TogglePvp -= pvp.TogglePvPHook;
+
+                spectatorManager.Dispose();
             }
             base.Dispose(Disposing);
         }
@@ -154,6 +157,8 @@ namespace CGGCTF
 
             #region CTF stuffs
             ctf = new CTFController(getCallback());
+            spectatorManager = new SpectatorManager(this);
+            spectatorManager.Register();
             #endregion
 
             #region Time stuffs
@@ -2111,8 +2116,8 @@ namespace CGGCTF
             spectating[ix] = true;
             tplr.GodMode = true;
             pvp.SetPvP(ix, false);
-            setDifficulty(tplr, 0);
             setPlayerClass(tplr, spectateClass);
+            spectatorManager.StartSpectating(ix);
         }
 
         void saveUser(CTFUser cusr)
