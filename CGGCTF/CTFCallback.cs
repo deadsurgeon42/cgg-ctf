@@ -1,63 +1,75 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Diagnostics;
-
-using Terraria;
-using TerrariaApi.Server;
-using TShockAPI;
-using TShockAPI.DB;
-using TShockAPI.Hooks;
+﻿using TShockAPI;
 
 namespace CGGCTF
 {
-    public class CTFCallback
-    {
-        public delegate void DecidePositionsD();
-        public delegate void SetTeamD(int id, CTFTeam team);
-        public delegate void SetPvPD(int id, bool pvp);
-        public delegate void SetInventoryD(int id, CTFClass cls);
-        public delegate PlayerData SaveInventoryD(int id);
-        public delegate void WarpToSpawnD(int id, CTFTeam team);
-        public delegate void InformPlayerJoinD(int id, CTFTeam team);
-        public delegate void InformPlayerRejoinD(int id, CTFTeam team);
-        public delegate void InformPlayerLeaveD(int id, CTFTeam team);
-        public delegate void AnnounceGetFlagD(int id, CTFTeam team);
-        public delegate void AnnounceCaptureFlagD(int id, CTFTeam team, int redScore, int blueScore);
-        public delegate void AnnounceFlagDropD(int id, CTFTeam team);
-        public delegate void AnnounceGameStartD();
-        public delegate void AnnounceCombatStartD();
-        public delegate void AnnounceSuddenDeathD();
-        public delegate void AnnounceGameEndD(CTFTeam winner, int redScore, int blueScore);
-        public delegate void AnnounceGameAbortD(string reason);
-        public delegate void TellPlayerTeamD(int id, CTFTeam team);
-        public delegate void TellPlayerSelectClassD(int id);
-        public delegate void TellPlayerCurrentClassD(int id, string name);
-        public delegate void AnnouncePlayerSwitchTeamD(int id, CTFTeam team);
-        public delegate void SetMediumcoreD(int id);
+  public class CtfCallback
+  {
+    public delegate void AnnounceCaptureFlagD(int id, CtfTeam team, int redScore, int blueScore);
 
-        public DecidePositionsD DecidePositions;
-        public SetTeamD SetTeam;
-        public SetPvPD SetPvP;
-        public SetInventoryD SetInventory;
-        public SaveInventoryD SaveInventory;
-        public WarpToSpawnD WarpToSpawn;
-        public InformPlayerJoinD InformPlayerJoin;
-        public InformPlayerRejoinD InformPlayerRejoin;
-        public InformPlayerLeaveD InformPlayerLeave;
-        public AnnounceGetFlagD AnnounceGetFlag;
-        public AnnounceCaptureFlagD AnnounceCaptureFlag;
-        public AnnounceFlagDropD AnnounceFlagDrop;
-        public AnnounceGameStartD AnnounceGameStart;
-        public AnnounceCombatStartD AnnounceCombatStart;
-        public AnnounceGameEndD AnnounceGameEnd;
-        public AnnounceGameAbortD AnnounceGameAbort;
-        public AnnounceSuddenDeathD AnnounceSuddenDeath;
-        public TellPlayerTeamD TellPlayerTeam;
-        public TellPlayerSelectClassD TellPlayerSelectClass;
-        public TellPlayerCurrentClassD TellPlayerCurrentClass;
-        public AnnouncePlayerSwitchTeamD AnnouncePlayerSwitchTeam;
-        public SetMediumcoreD SetMediumcore;
-    }
+    public delegate void AnnounceCombatStartD();
+
+    public delegate void AnnounceFlagDropD(int id, CtfTeam team);
+
+    public delegate void AnnounceGameAbortD(string reason);
+
+    public delegate void AnnounceGameEndD(CtfTeam winner, int redScore, int blueScore);
+
+    public delegate void AnnounceGameStartD();
+
+    public delegate void AnnounceGetFlagD(int id, CtfTeam team);
+
+    public delegate void AnnouncePlayerSwitchTeamD(int id, CtfTeam team);
+
+    public delegate void AnnounceSuddenDeathD();
+
+    public delegate void DecidePositionsD();
+
+    public delegate void InformPlayerJoinD(int id, CtfTeam team);
+
+    public delegate void InformPlayerLeaveD(int id, CtfTeam team);
+
+    public delegate void InformPlayerRejoinD(int id, CtfTeam team);
+
+    public delegate PlayerData SaveInventoryD(int id);
+
+    public delegate void SetInventoryD(int id, CtfClass cls);
+
+    public delegate void SetMediumcoreD(int id);
+
+    public delegate void SetPvPd(int id, bool pvp);
+
+    public delegate void SetTeamD(int id, CtfTeam team);
+
+    public delegate void TellPlayerCurrentClassD(int id, string name);
+
+    public delegate void TellPlayerSelectClassD(int id);
+
+    public delegate void TellPlayerTeamD(int id, CtfTeam team);
+
+    public delegate void WarpToSpawnD(int id, CtfTeam team);
+
+    public AnnounceCaptureFlagD AnnounceCaptureFlag;
+    public AnnounceCombatStartD AnnounceCombatStart;
+    public AnnounceFlagDropD AnnounceFlagDrop;
+    public AnnounceGameAbortD AnnounceGameAbort;
+    public AnnounceGameEndD AnnounceGameEnd;
+    public AnnounceGameStartD AnnounceGameStart;
+    public AnnounceGetFlagD AnnounceGetFlag;
+    public AnnouncePlayerSwitchTeamD AnnouncePlayerSwitchTeam;
+    public AnnounceSuddenDeathD AnnounceSuddenDeath;
+
+    public DecidePositionsD DecidePositions;
+    public InformPlayerJoinD InformPlayerJoin;
+    public InformPlayerLeaveD InformPlayerLeave;
+    public InformPlayerRejoinD InformPlayerRejoin;
+    public SaveInventoryD SaveInventory;
+    public SetInventoryD SetInventory;
+    public SetMediumcoreD SetMediumcore;
+    public SetPvPd SetPvP;
+    public SetTeamD SetTeam;
+    public TellPlayerCurrentClassD TellPlayerCurrentClass;
+    public TellPlayerSelectClassD TellPlayerSelectClass;
+    public TellPlayerTeamD TellPlayerTeam;
+    public WarpToSpawnD WarpToSpawn;
+  }
 }

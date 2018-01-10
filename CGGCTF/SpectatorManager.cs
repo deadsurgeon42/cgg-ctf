@@ -8,19 +8,12 @@ namespace CGGCTF
 {
   public sealed class SpectatorManager : IDisposable
   {
+    private readonly bool[] _ignoredPlayerIndexes = new bool[Main.maxPlayers];
     private readonly TerrariaPlugin _registrator;
 
     public SpectatorManager(TerrariaPlugin registrator)
     {
       _registrator = registrator;
-    }
-
-    public void Register()
-    {
-      ServerApi.Hooks.NetGetData.Register(_registrator, BlockVisibleActions);
-      ServerApi.Hooks.NetSendBytes.Register(_registrator, BlockSentData);
-
-      ServerApi.Hooks.ServerLeave.Register(_registrator, RemoveLeavingPlayerFromIgnoredList);
     }
 
     public void Dispose()
@@ -29,6 +22,14 @@ namespace CGGCTF
       ServerApi.Hooks.NetSendBytes.Deregister(_registrator, BlockSentData);
 
       ServerApi.Hooks.ServerLeave.Deregister(_registrator, RemoveLeavingPlayerFromIgnoredList);
+    }
+
+    public void Register()
+    {
+      ServerApi.Hooks.NetGetData.Register(_registrator, BlockVisibleActions);
+      ServerApi.Hooks.NetSendBytes.Register(_registrator, BlockSentData);
+
+      ServerApi.Hooks.ServerLeave.Register(_registrator, RemoveLeavingPlayerFromIgnoredList);
     }
 
     public void StartSpectating(int index)
@@ -44,7 +45,10 @@ namespace CGGCTF
       MakePlayerReappear(index);
     }
 
-    public bool IsSpectating(int index) => _ignoredPlayerIndexes[index];
+    public bool IsSpectating(int index)
+    {
+      return _ignoredPlayerIndexes[index];
+    }
 
     private static void RemoveItemsFromSight(int index)
     {
@@ -103,8 +107,6 @@ namespace CGGCTF
       if (ShouldDropPacket(args.Buffer, args.Offset, args.Count, (byte) args.Socket.Id))
         args.Handled = true;
     }
-
-    private readonly bool[] _ignoredPlayerIndexes = new bool[Main.maxPlayers];
 
     private void RemoveLeavingPlayerFromIgnoredList(LeaveEventArgs args)
     {
@@ -186,10 +188,8 @@ namespace CGGCTF
             return false;
           BitsByte flag = buffer[bOffset];
           if (flag[0] || flag[2])
-          {
             if (!ShouldSeeUser((byte) BitConverter.ToUInt16(buffer, bOffset + 1), receiver))
               return true;
-          }
 
           break;
         case 108:
@@ -204,7 +204,7 @@ namespace CGGCTF
           if (!ShouldSeeUser(buffer[bOffset + 4], receiver))
             return true;
           break;
-        
+
         case 21:
           if (_ignoredPlayerIndexes[receiver])
             return true;
