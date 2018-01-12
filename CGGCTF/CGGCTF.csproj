@@ -61,17 +61,15 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Core\Commands\CommandBase.cs" />
-    <Compile Include="Core\Commands\CommandCollectionBase.cs" />
-    <Compile Include="Core\Commands\CommandException.cs" />
     <Compile Include="CTFCallback.cs" />
     <Compile Include="CTFClass.cs" />
     <Compile Include="CTFClassManager.cs" />
     <Compile Include="CTFConfig.cs" />
     <Compile Include="CTFPermissions.cs" />
     <Compile Include="CTFPlayer.cs" />
-    <Compile Include="CTFPlugin.cs" />
     <Compile Include="CTFController.cs" />
+    <Compile Include="CtfPlugin.cs" />
+    <Compile Include="CtfPluginBootstrapper.cs" />
     <Compile Include="CTFPvPControl.cs" />
     <Compile Include="CTFTileSystem.cs" />
     <Compile Include="CTFUser.cs" />

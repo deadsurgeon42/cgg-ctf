@@ -1,36 +1,40 @@
-﻿namespace CGGCTF
+﻿using System.Collections.Generic;
+
+namespace CGGCTF
 {
   public static class CtfPermissions
   {
-    public static readonly string Play = "ctf.game.play";
-    public static readonly string Spectate = "ctf.game.spectate";
-    public static readonly string Skip = "ctf.game.skip";
-    public static readonly string Extend = "ctf.game.extend";
-    public static readonly string SwitchTeam = "ctf.game.switchteam";
+    public const string Play = "ctf.game.play";
+    public const string Spectate = "ctf.game.spectate";
+    public const string Skip = "ctf.game.skip";
+    public const string Extend = "ctf.game.extend";
+    public const string SwitchTeam = "ctf.game.switchteam";
 
-    public static readonly string ClassBuy = "ctf.class.buy";
-    public static readonly string ClassSeeAll = "ctf.class.seeall";
-    public static readonly string ClassBuyAll = "ctf.class.buyall";
-    public static readonly string ClassUseAll = "ctf.class.useall";
-    public static readonly string ClassEdit = "ctf.class.edit";
+    public const string ClassBuy = "ctf.class.buy";
+    public const string ClassSeeAll = "ctf.class.seeall";
+    public const string ClassBuyAll = "ctf.class.buyall";
+    public const string ClassUseAll = "ctf.class.useall";
+    public const string ClassEdit = "ctf.class.edit";
 
-    public static readonly string PackageUse = "ctf.pkg.use";
-    public static readonly string PackageBuy = "ctf.pkg.buy";
-    public static readonly string PackageSeeAll = "ctf.pkg.seeall";
-    public static readonly string PackageBuyAll = "ctf.pkg.buyall";
-    public static readonly string PackageUseAll = "ctf.pkg.useall";
-    public static readonly string PackageEdit = "ctf.pkg.edit";
+    public const string PackageUse = "ctf.pkg.use";
+    public const string PackageBuy = "ctf.pkg.buy";
+    public const string PackageSeeAll = "ctf.pkg.seeall";
+    public const string PackageBuyAll = "ctf.pkg.buyall";
+    public const string PackageUseAll = "ctf.pkg.useall";
+    public const string PackageEdit = "ctf.pkg.edit";
 
-    public static readonly string BalCheck = "ctf.bal.check.self";
-    public static readonly string BalCheckOther = "ctf.bal.check.others";
-    public static readonly string BalEdit = "ctf.bal.edit";
-    public static readonly string BalGain = "ctf.bal.gain";
+    public const string BalCheck = "ctf.bal.check.self";
+    public const string BalCheckOther = "ctf.bal.check.others";
+    public const string BalEdit = "ctf.bal.edit";
+    public const string BalGain = "ctf.bal.gain";
 
-    public static readonly string StatsSelf = "ctf.stats.self";
-    public static readonly string StatsOther = "ctf.stats.others";
+    public const string StatsSelf = "ctf.stats.self";
+    public const string StatsOther = "ctf.stats.others";
 
-    public static readonly string IgnoreInteract = "ctf.ignore.interact";
-    public static readonly string IgnoreTempgroup = "ctf.ignore.tempgroup";
-    public static readonly string IgnoreSpecJoin = "ctf.ignore.specjoin";
+    public const string IgnoreInteract = "ctf.ignore.interact";
+    public const string IgnoreTempgroup = "ctf.ignore.tempgroup";
+    public const string IgnoreSpecJoin = "ctf.ignore.specjoin";
+
+    public const string Reload = "ctf.reload";
   }
 }

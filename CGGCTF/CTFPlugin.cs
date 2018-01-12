@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 using System.Text;
 using System.Timers;
 using Microsoft.Xna.Framework;
@@ -16,23 +15,18 @@ using TShockAPI.Hooks;
 
 namespace CGGCTF
 {
-  [ApiVersion(2, 1)]
-  public class CtfPlugin : TerrariaPlugin
+  public sealed class CtfPlugin
   {
-    public override string Name => "CGGCTF";
-    public override string Description => "Automated CTF game for CatGiveGames Server";
-    public override string Author => "AquaBlitz11";
-    public override Version Version => Assembly.GetExecutingAssembly().GetName().Version;
-
-    public CtfPlugin(Main game) : base(game)
-    {
-    }
-
     private const int CrownSlot = 10;
     private const int CrownNetSlot = 69;
     private const int ArmorHeadSlot = 0;
     private const int ArmorHeadNetSlot = 59;
     private const int CrownId = ItemID.GoldCrown;
+
+    private readonly TerrariaPlugin _registrator;
+
+    internal CtfPlugin(TerrariaPlugin registrator)
+      => _registrator = registrator;
 
     // database
     private CtfClassManager _classes;
@@ -92,69 +86,31 @@ namespace CGGCTF
 
     #region Initialization
 
-    public override void Initialize()
+    public void Initialize()
     {
-      ServerApi.Hooks.GameInitialize.Register(this, OnInitialize);
       GeneralHooks.ReloadEvent += OnReload;
-      ServerApi.Hooks.GameUpdate.Register(this, OnUpdate);
+      ServerApi.Hooks.GameUpdate.Register(_registrator, OnUpdate);
 
-      ServerApi.Hooks.ServerJoin.Register(this, OnJoin);
+      ServerApi.Hooks.ServerJoin.Register(_registrator, OnJoin);
       PlayerHooks.PlayerPostLogin += OnLogin;
       PlayerHooks.PlayerLogout += OnLogout;
-      ServerApi.Hooks.ServerLeave.Register(this, OnLeave);
+      ServerApi.Hooks.ServerLeave.Register(_registrator, OnLeave);
 
       GetDataHandlers.PlayerUpdate += OnPlayerUpdate;
       GetDataHandlers.KillMe += OnDeath;
       GetDataHandlers.PlayerSpawn += OnSpawn;
-      ServerApi.Hooks.NetSendData.Register(this, OnSendData);
+      ServerApi.Hooks.NetSendData.Register(_registrator, OnSendData);
       GetDataHandlers.PlayerSlot += OnSlot;
-      ServerApi.Hooks.NetGetData.Register(this, OnGetData);
+      ServerApi.Hooks.NetGetData.Register(_registrator, OnGetData);
 
-      ServerApi.Hooks.NpcSpawn.Register(this, OnNpcSpawn);
+      ServerApi.Hooks.NpcSpawn.Register(_registrator, OnNpcSpawn);
 
       GetDataHandlers.TileEdit += OnTileEdit;
       GetDataHandlers.ChestOpen += OnChestOpen;
       GetDataHandlers.ItemDrop += OnItemDrop;
       GetDataHandlers.PlayerTeam += _pvp.PlayerTeamHook;
       GetDataHandlers.TogglePvp += _pvp.TogglePvPHook;
-    }
 
-    protected override void Dispose(bool disposing)
-    {
-      if (disposing)
-      {
-        ServerApi.Hooks.GameInitialize.Deregister(this, OnInitialize);
-        GeneralHooks.ReloadEvent -= OnReload;
-        ServerApi.Hooks.GameUpdate.Deregister(this, OnUpdate);
-
-        ServerApi.Hooks.ServerJoin.Deregister(this, OnJoin);
-        PlayerHooks.PlayerPostLogin -= OnLogin;
-        PlayerHooks.PlayerLogout -= OnLogout;
-        ServerApi.Hooks.ServerLeave.Deregister(this, OnLeave);
-
-        GetDataHandlers.PlayerUpdate -= OnPlayerUpdate;
-        GetDataHandlers.KillMe -= OnDeath;
-        GetDataHandlers.PlayerSpawn -= OnSpawn;
-        ServerApi.Hooks.NetSendData.Deregister(this, OnSendData);
-        GetDataHandlers.PlayerSlot -= OnSlot;
-        ServerApi.Hooks.NetGetData.Deregister(this, OnGetData);
-
-        ServerApi.Hooks.NpcSpawn.Deregister(this, OnNpcSpawn);
-
-        GetDataHandlers.TileEdit -= OnTileEdit;
-        GetDataHandlers.ChestOpen -= OnChestOpen;
-        GetDataHandlers.ItemDrop -= OnItemDrop;
-        GetDataHandlers.PlayerTeam -= _pvp.PlayerTeamHook;
-        GetDataHandlers.TogglePvp -= _pvp.TogglePvPHook;
-
-        _spectatorManager.Dispose();
-      }
-
-      base.Dispose(disposing);
-    }
-
-    private void OnInitialize(EventArgs args)
-    {
       CtfConfig.Read();
       CtfConfig.Write();
 
@@ -168,7 +124,7 @@ namespace CGGCTF
       #region CTF stuffs
 
       _ctf = new CtfController(GetCallback());
-      _spectatorManager = new SpectatorManager(this);
+      _spectatorManager = new SpectatorManager(_registrator);
       _spectatorManager.Register();
 
       #endregion
@@ -216,6 +172,34 @@ namespace CGGCTF
       add(new Command(CtfPermissions.StatsSelf, CmdStats, "stats"));
 
       #endregion
+    }
+
+    public void Dispose()
+    {
+      GeneralHooks.ReloadEvent -= OnReload;
+      ServerApi.Hooks.GameUpdate.Deregister(_registrator, OnUpdate);
+
+      ServerApi.Hooks.ServerJoin.Deregister(_registrator, OnJoin);
+      PlayerHooks.PlayerPostLogin -= OnLogin;
+      PlayerHooks.PlayerLogout -= OnLogout;
+      ServerApi.Hooks.ServerLeave.Deregister(_registrator, OnLeave);
+
+      GetDataHandlers.PlayerUpdate -= OnPlayerUpdate;
+      GetDataHandlers.KillMe -= OnDeath;
+      GetDataHandlers.PlayerSpawn -= OnSpawn;
+      ServerApi.Hooks.NetSendData.Deregister(_registrator, OnSendData);
+      GetDataHandlers.PlayerSlot -= OnSlot;
+      ServerApi.Hooks.NetGetData.Deregister(_registrator, OnGetData);
+
+      ServerApi.Hooks.NpcSpawn.Deregister(_registrator, OnNpcSpawn);
+
+      GetDataHandlers.TileEdit -= OnTileEdit;
+      GetDataHandlers.ChestOpen -= OnChestOpen;
+      GetDataHandlers.ItemDrop -= OnItemDrop;
+      GetDataHandlers.PlayerTeam -= _pvp.PlayerTeamHook;
+      GetDataHandlers.TogglePvp -= _pvp.TogglePvPHook;
+
+      _spectatorManager.Dispose();
     }
 
     private void OnReload(ReloadEventArgs args)
