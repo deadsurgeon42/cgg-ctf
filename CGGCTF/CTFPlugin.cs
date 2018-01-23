@@ -15,7 +15,7 @@ using TShockAPI.Hooks;
 
 namespace CGGCTF
 {
-  public sealed class CtfPlugin
+  public sealed class CtfPlugin : IDisposable
   {
     private const int CrownSlot = 10;
     private const int CrownNetSlot = 69;
@@ -155,23 +155,31 @@ namespace CGGCTF
 
       #region Commands
 
-      Action<Command> add = c =>
+      void Add(Command c)
       {
         Commands.ChatCommands.RemoveAll(c2 => c2.Names.Exists(s2 => c.Names.Contains(s2)));
         Commands.ChatCommands.Add(c);
-      };
-      add(new Command(Permissions.spawn, CmdSpawn, "spawn", "home"));
-      add(new Command(CtfPermissions.Play, CmdJoin, "join"));
-      add(new Command(CtfPermissions.Play, CmdClass, "class"));
-      add(new Command(CtfPermissions.PackageUse, CmdPackage, "pkg", "package"));
-      add(new Command(CtfPermissions.Skip, CmdSkip, "skip"));
-      add(new Command(CtfPermissions.Extend, CmdExtend, "extend"));
-      add(new Command(CtfPermissions.SwitchTeam, CmdTeam, "team"));
-      add(new Command(CtfPermissions.Spectate, CmdSpectate, "spectate"));
-      add(new Command(CtfPermissions.BalCheck, CmdBalance, "balance", "bal"));
-      add(new Command(CtfPermissions.StatsSelf, CmdStats, "stats"));
+      }
+
+      Add(new Command(Permissions.spawn, CmdSpawn, "spawn", "home"));
+      Add(new Command(CtfPermissions.Play, CmdJoin, "join"));
+      Add(new Command(CtfPermissions.Play, CmdClass, "class"));
+      Add(new Command(CtfPermissions.PackageUse, CmdPackage, "pkg", "package"));
+      Add(new Command(CtfPermissions.Skip, CmdSkip, "skip"));
+      Add(new Command(CtfPermissions.Extend, CmdExtend, "extend"));
+      Add(new Command(CtfPermissions.SwitchTeam, CmdTeam, "team"));
+      Add(new Command(CtfPermissions.Spectate, CmdSpectate, "spectate"));
+      Add(new Command(CtfPermissions.BalCheck, CmdBalance, "balance", "bal"));
+      Add(new Command(CtfPermissions.StatsSelf, CmdStats, "stats"));
 
       #endregion
+
+      foreach (var player in TShock.Players.Where(p => p != null && p.Active))
+      {
+        InitializePlayer(player.Index);
+        if (player.IsLoggedIn)
+          InitializeLoggedInPlayer(player);
+      }
     }
 
     public void Dispose()
@@ -198,6 +206,9 @@ namespace CGGCTF
       GetDataHandlers.ItemDrop -= OnItemDrop;
       GetDataHandlers.PlayerTeam -= _pvp.PlayerTeamHook;
       GetDataHandlers.TogglePvp -= _pvp.TogglePvPHook;
+
+      _gameTimer.Dispose();
+      _rainTimer.Dispose();
 
       _spectatorManager.Dispose();
     }
@@ -226,28 +237,38 @@ namespace CGGCTF
     private void OnWorldLoad(EventArgs args)
     {
       _tiles.RemoveBadStuffs();
+      RemoveTownNpcs();
+
+      foreach (var client in Netplay.Clients)
+        client.ResetSections();
     }
 
     private void OnNpcSpawn(NpcSpawnEventArgs args)
     {
-      var npc = Main.npc.ElementAtOrDefault(args.NpcId);
-      if (npc == null)
-        return;
+      RemoveTownNpcs();
+    }
 
-      if (npc.townNPC)
+    private static void RemoveTownNpcs()
+    {
+      foreach (var npc in Main.npc.Where(n => n != null && n.townNPC))
       {
-        Main.npc[args.NpcId] = new NPC();
-        TSPlayer.All.SendData(PacketTypes.NpcUpdate, number: args.NpcId);
+        Main.npc[npc.whoAmI] = new NPC();
+        TSPlayer.All.SendData(PacketTypes.NpcUpdate, number: npc.whoAmI);
       }
     }
 
     private void OnJoin(JoinEventArgs args)
     {
-      var ix = args.Who;
+      InitializePlayer(args.Who);
+    }
+
+    private void InitializePlayer(int playerIndex)
+    {
+      var ix = playerIndex;
       var tplr = TShock.Players[ix];
 
-      _pvp.SetTeam(args.Who, TeamColor.White);
-      _pvp.SetPvP(args.Who, false);
+      _pvp.SetTeam(playerIndex, TeamColor.White);
+      _pvp.SetPvP(playerIndex, false);
 
       SetDifficulty(tplr, 0);
 
@@ -261,7 +282,12 @@ namespace CGGCTF
 
     private void OnLogin(PlayerPostLoginEventArgs args)
     {
-      var tplr = args.Player;
+      InitializeLoggedInPlayer(args.Player);
+    }
+
+    private void InitializeLoggedInPlayer(TSPlayer player)
+    {
+      var tplr = player;
       var ix = tplr.Index;
       var id = tplr.User.ID;
 
@@ -318,6 +344,7 @@ namespace CGGCTF
       SetPlayerClass(tplr, BlankClass);
       _revId.Remove(id);
     }
+
 
     private void OnLeave(LeaveEventArgs args)
     {
@@ -583,14 +610,17 @@ namespace CGGCTF
             }
           }
 
-          foreach (var aix in _didDamage[ix])
+          if (_didDamage[ix] != null)
           {
-            if (aix == kix)
-              continue;
-            var atplr = TShock.Players[aix];
-            var acusr = _loadedUser[aix];
-            ++acusr.Assists;
-            GiveCoins(atplr, CtfConfig.GainAssist);
+            foreach (var aix in _didDamage[ix])
+            {
+              if (aix == kix)
+                continue;
+              var atplr = TShock.Players[aix];
+              var acusr = _loadedUser[aix];
+              ++acusr.Assists;
+              GiveCoins(atplr, CtfConfig.GainAssist);
+            }
           }
 
           ++cusr.Deaths;
@@ -657,33 +687,31 @@ namespace CGGCTF
         if (_timeLeft == 0)
           NextPhase();
 
-        if (_ctf.Phase == CtfPhase.Lobby)
+        switch (_ctf.Phase)
         {
-          if (_timeLeft == 60 || _timeLeft == 30)
-            AnnounceWarning("Game will start in {0}.", CtfUtils.TimeToString(_timeLeft));
-        }
-        else if (_ctf.Phase == CtfPhase.Preparation)
-        {
-          DisplayTime("Preparation Phase");
-          if (_timeLeft == 60)
-            AnnounceWarning("{0} left for preparation phase.", CtfUtils.TimeToString(_timeLeft));
-        }
-        else if (_ctf.Phase == CtfPhase.Combat)
-        {
-          DisplayTime("Combat Phase");
-          if (_timeLeft == 60 * 5 || _timeLeft == 60)
-            AnnounceWarning("{0} left for combat phase.", CtfUtils.TimeToString(_timeLeft));
-        }
-        else if (_ctf.Phase == CtfPhase.SuddenDeath)
-        {
-          DisplayTime("Sudden Death");
-          if (_timeLeft == 60)
-            AnnounceWarning("{0} left for sudden death.", CtfUtils.TimeToString(_timeLeft));
-        }
-        else if (_ctf.Phase == CtfPhase.Ended)
-        {
-          if (_timeLeft == 20 || _timeLeft == 10)
-            AnnounceWarning("Server will shut down in {0}.", CtfUtils.TimeToString(_timeLeft));
+          case CtfPhase.Lobby:
+            if (_timeLeft == 60 || _timeLeft == 30)
+              AnnounceWarning("Game will start in {0}.", CtfUtils.TimeToString(_timeLeft));
+            break;
+          case CtfPhase.Preparation:
+            DisplayTime("Preparation Phase");
+            if (_timeLeft == 60)
+              AnnounceWarning("{0} left for preparation phase.", CtfUtils.TimeToString(_timeLeft));
+            break;
+          case CtfPhase.Combat:
+            DisplayTime("Combat Phase");
+            if (_timeLeft == 60 * 5 || _timeLeft == 60)
+              AnnounceWarning("{0} left for combat phase.", CtfUtils.TimeToString(_timeLeft));
+            break;
+          case CtfPhase.SuddenDeath:
+            DisplayTime("Sudden Death");
+            if (_timeLeft == 60)
+              AnnounceWarning("{0} left for sudden death.", CtfUtils.TimeToString(_timeLeft));
+            break;
+          case CtfPhase.Ended:
+            if (_timeLeft == 20 || _timeLeft == 10)
+              AnnounceWarning("The map will regenerate in {0}.", CtfUtils.TimeToString(_timeLeft));
+            break;
         }
       }
     }
@@ -2198,6 +2226,10 @@ namespace CGGCTF
         _tiles.AddFlags();
         _tiles.AddMiddleBlock();
         _timeLeft = PrepTime;
+
+        foreach (var player in TShock.Players.Where(p => p != null && !_spectating[p.Index]
+                                                                   && !_ctf.PlayerExists(p.User?.ID ?? -1)))
+          GiveSpectate(player);
       };
       cb.AnnounceCombatStart = delegate
       {
@@ -2236,8 +2268,13 @@ namespace CGGCTF
           var ix = tplr.Index;
           var id = tplr.IsLoggedIn ? tplr.User.ID : -1;
           var cusr = _loadedUser[ix];
+
+          if (_spectating[ix])
+            TakeSpectate(tplr);
+
           if (!_ctf.PlayerExists(id))
             continue;
+
           if (_ctf.GetPlayerTeam(id) == winner)
           {
             ++cusr.Wins;
@@ -2300,15 +2337,12 @@ namespace CGGCTF
       return cb;
     }
 
-    private void Shutdown()
-    {
-      TShock.Utils.StopServer(false);
-    }
+    public event EventHandler GameFinished;
 
     private void NextPhase()
     {
       if (_ctf.Phase == CtfPhase.Ended)
-        Shutdown();
+        GameFinished?.Invoke(this, EventArgs.Empty);
       else
         _ctf.NextPhase();
     }
@@ -2388,13 +2422,21 @@ namespace CGGCTF
 
     private void GiveSpectate(TSPlayer tplr)
     {
-      // TODO - ghost the player
       var ix = tplr.Index;
       _spectating[ix] = true;
       tplr.GodMode = true;
       _pvp.SetPvP(ix, false);
       SetPlayerClass(tplr, SpectateClass);
       _spectatorManager.StartSpectating(ix);
+    }
+
+    private void TakeSpectate(TSPlayer tplr)
+    {
+      var ix = tplr.Index;
+      _spectating[ix] = false;
+      tplr.GodMode = false;
+
+      _spectatorManager.StopSpectating(ix);
     }
 
     private void SaveUser(CtfUser cusr)

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading.Tasks;
 using Terraria;
 using TerrariaApi.Server;
 using TShockAPI;
@@ -26,18 +27,26 @@ namespace CGGCTF
       Commands.ChatCommands.Add(new Command(CtfPermissions.Reload, ReinstantiatePlugin, "ctfreload"));
     }
 
-    private void InstantiatePlugin(EventArgs args)
+    private void InstantiatePlugin(EventArgs args) => InstantiatePlugin();
+    private void ReinstantiatePlugin(CommandArgs args) => ReinstantiatePlugin();
+
+    private void InstantiatePlugin()
     {
       Plugin = new CtfPlugin(this);
       Plugin.Initialize();
+
+      Plugin.GameFinished += (sender, e) => Task.Run(() =>
+      {
+        WorldRegeneration.RegenerateWorld(this);
+        ReinstantiatePlugin();
+      });
     }
 
-    private void ReinstantiatePlugin(CommandArgs args)
+    private void ReinstantiatePlugin()
     {
       Plugin?.Dispose();
 
-      Plugin = new CtfPlugin(this);
-      Plugin.Initialize();
+      InstantiatePlugin();
     }
 
     protected override void Dispose(bool disposing)
