@@ -2269,8 +2269,7 @@ namespace CGGCTF
           var id = tplr.IsLoggedIn ? tplr.User.ID : -1;
           var cusr = _loadedUser[ix];
 
-          if (_spectating[ix])
-            TakeSpectate(tplr);
+          TakeSpectate(tplr);
 
           if (!_ctf.PlayerExists(id))
             continue;

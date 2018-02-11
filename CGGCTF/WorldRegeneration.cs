@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Xna.Framework;
@@ -65,8 +66,6 @@ namespace CGGCTF
         foreach (var client in Netplay.Clients)
           client.ResetSections();
 
-        TSPlayer.All.Teleport(Main.spawnTileX * 16, (Main.spawnTileY * 16) - 48);
-
         _working = false;
       }
     }
@@ -107,20 +106,22 @@ namespace CGGCTF
           if (progress.Message != currentMsg)
           {
             currentMsg = progress.Message;
-
-            TSPlayer.All.SendData(PacketTypes.Status,
-              new StringBuilder().Append('\n', 11)
-                .Append(currentMsg)
-                .AppendFormat("\n{0:F0}%", progress.TotalProgress * 100)
-                .Append('\n', 40).ToString());
+            foreach (var player in TShock.Players.Where(p => p != null && p.Active))
+              player.SendData(PacketTypes.Status,
+                new StringBuilder().Append('\n', 11)
+                  .Append(currentMsg)
+                  .AppendFormat("\n{0:F0}%", progress.TotalProgress * 100)
+                  .Append('\n', 40).ToString());
           }
         }
-
-        TSPlayer.All.SendData(PacketTypes.Status);
       }
       catch (Exception e)
       {
         TShock.Log.ConsoleError(e.ToString());
+      }
+      finally
+      {
+        TSPlayer.All.SendData(PacketTypes.Status);
       }
     }
   }
